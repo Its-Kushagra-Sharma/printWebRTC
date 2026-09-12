@@ -1,8 +1,0 @@
-{
-  "name": "@myprint/agent",
-  "private": true,
-  "main": "dist/main.js",
-  "scripts": { "dev": "electron .", "build": "tsc src/main.ts src/preload.ts src/renderer.ts --outDir dist --target ES2022 --module CommonJS --moduleResolution node --esModuleInterop --skipLibCheck --lib ES2022,DOM && node -e \"require('fs').copyFileSync('src/index.html', 'dist/index.html')\"" },
-  "dependencies": { "@myprint/shared": "*", "dotenv": "^16.4.7", "electron": "^33.0.0", "firebase": "^11.0.2" },
-  "devDependencies": { "@types/node": "^22", "typescript": "^5.6" }
-}
