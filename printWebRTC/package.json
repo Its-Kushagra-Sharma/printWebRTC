@@ -1,0 +1,14 @@
+{
+  "name": "myprint",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:web": "npm --workspace @myprint/web run dev",
+    "dev:agent": "npm --workspace @myprint/agent run dev",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "mint:agent-token": "node scripts/mint-agent-token.mjs",
+    "provision:demo-shop": "node scripts/provision-demo-shop.mjs",
+    "enable:auth": "node scripts/enable-auth-providers.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

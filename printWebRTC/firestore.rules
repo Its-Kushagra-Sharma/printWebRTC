@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function merchant(shopId) {
+      return signedIn() && request.auth.token.role == 'merchant' && request.auth.token.shop_id == shopId;
+    }
+    function agent(shopId) {
+      return signedIn() && request.auth.token.role == 'agent' && request.auth.token.shop_id == shopId;
+    }
+    function tenant(shopId) { return merchant(shopId) || agent(shopId); }
+
+    match /shops/{shopId} {
+      allow get: if signedIn(); // QR landing page reads public-safe fields through API in production.
+      allow create: if false; // server/Admin SDK only
+      allow update, delete: if merchant(shopId);
+
+      match /pricing/{priceId} {
+        allow read: if signedIn();
+        allow write: if merchant(shopId);
+      }
+      match /agents/{agentId} {
+        allow read: if tenant(shopId);
+        allow create, update: if merchant(shopId) || (agent(shopId) && request.auth.uid == agentId);
+        allow delete: if merchant(shopId);
+      }
+      match /jobs/{jobId} {
+        allow read: if tenant(shopId) || (signedIn() && resource.data.customer_uid == request.auth.uid);
+        // Creation is mediated by backend; client must never choose fee/status.
+        allow create: if false;
+        allow update: if agent(shopId) && request.auth.uid == resource.data.agent_id;
+        allow delete: if false; // backend transaction/callable only
+        match /signal/{signalId} {
+          allow read, write: if tenant(shopId) || (signedIn() && get(/databases/$(database)/documents/shops/$(shopId)/jobs/$(jobId)).data.customer_uid == request.auth.uid);
+        }
+      }
+      match /wallet_ledger/{entryId} {
+        allow read: if merchant(shopId);
+        allow write: if false;
+      }
+    }
+  }
+}
